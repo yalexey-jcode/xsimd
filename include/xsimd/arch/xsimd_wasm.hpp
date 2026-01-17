@@ -32,7 +32,7 @@ namespace xsimd
     namespace kernel
     {
         using namespace types;
-// ====================================================
+        // ====================================================
         // RELAXED SIMD IMPLEMENTATION
         // ====================================================
 
@@ -94,34 +94,34 @@ namespace xsimd
         // 5. RECIPROCAL (1/x)
         // В wasm версии это div(1, x). Relaxed дает ~12 бит точности.
         // Добавляем шаг Ньютона-Рафсона для повышения точности до ~23 бит.
-        template <class A>
-        XSIMD_INLINE batch<float, A> reciprocal(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
-        {
-            auto r = wasm_f32x4_relaxed_reciprocal(self.data);
+        // template <class A>
+        // XSIMD_INLINE batch<float, A> reciprocal(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
+        // {
+        //    auto r = wasm_f32x4_relaxed_reciprocal(self.data);
             // Шаг уточнения: r = r * (2.0 - x * r)
             // Используем nmadd для скобки: -(x*r) + 2.0
-            auto two = wasm_f32x4_splat(2.0f);
-            auto correction = wasm_f32x4_relaxed_nmadd(self.data, r, two);
-            return wasm_f32x4_mul(r, correction);
-        }
+         //   auto two = wasm_f32x4_splat(2.0f);
+         //   auto correction = wasm_f32x4_relaxed_nmadd(self.data, r, two);
+         //   return wasm_f32x4_mul(r, correction);
+        //}
         // Для double relaxed reciprocal обычно не реализуется аппаратно, оставляем стандартный.
 
         // 6. RSQRT (1/sqrt(x))
         // В wasm версии это div(1, sqrt(x)).
-        template <class A>
-        XSIMD_INLINE batch<float, A> rsqrt(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
-        {
-            auto r = wasm_f32x4_relaxed_rsqrt(self.data);
+        //template <class A>
+        //XSIMD_INLINE batch<float, A> rsqrt(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
+        //{
+        //    auto r = wasm_f32x4_relaxed_rsqrt(self.data);
             // Шаг уточнения: r = r * (1.5 - 0.5 * x * r * r)
-            auto half = wasm_f32x4_splat(0.5f);
-            auto one_point_five = wasm_f32x4_splat(1.5f);
+        //    auto half = wasm_f32x4_splat(0.5f);
+        //    auto one_point_five = wasm_f32x4_splat(1.5f);
             
             // x * r * r
-            auto term = wasm_f32x4_mul(self.data, wasm_f32x4_mul(r, r));
+        //    auto term = wasm_f32x4_mul(self.data, wasm_f32x4_mul(r, r));
             // -(0.5 * term) + 1.5
-            auto correction = wasm_f32x4_relaxed_nmadd(half, term, one_point_five);
-            return wasm_f32x4_mul(r, correction);
-        }
+        //    auto correction = wasm_f32x4_relaxed_nmadd(half, term, one_point_five);
+        //    return wasm_f32x4_mul(r, correction);
+        //}
 
         // fwd
         template <class A, class T, size_t I>
