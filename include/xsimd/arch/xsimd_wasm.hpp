@@ -32,6 +32,96 @@ namespace xsimd
     namespace kernel
     {
         using namespace types;
+// ====================================================
+        // RELAXED SIMD IMPLEMENTATION
+        // ====================================================
+
+        // 1. FMA (Fused Multiply-Add)
+        // В generic версии это (x * y) + z. Мы меняем на relaxed_madd.
+        template <class A>
+        XSIMD_INLINE batch<float, A> fma(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f32x4_relaxed_madd(x.data, y.data, z.data);
+        }
+
+        template <class A>
+        XSIMD_INLINE batch<double, A> fma(batch<double, A> const& x, batch<double, A> const& y, batch<double, A> const& z, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f64x2_relaxed_madd(x.data, y.data, z.data);
+        }
+
+        // 2. FNMA (Fused Negated Multiply-Add)
+        // В generic версии это -(x * y) + z. Мы меняем на relaxed_nmadd.
+        template <class A>
+        XSIMD_INLINE batch<float, A> fnma(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f32x4_relaxed_nmadd(x.data, y.data, z.data);
+        }
+
+        template <class A>
+        XSIMD_INLINE batch<double, A> fnma(batch<double, A> const& x, batch<double, A> const& y, batch<double, A> const& z, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f64x2_relaxed_nmadd(x.data, y.data, z.data);
+        }
+
+        // 3. MIN (Relaxed)
+        // В стандартном wasm это pmin (строгий к NaN). Relaxed быстрее.
+        template <class A>
+        XSIMD_INLINE batch<float, A> min(batch<float, A> const& self, batch<float, A> const& other, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f32x4_relaxed_min(self.data, other.data);
+        }
+
+        template <class A>
+        XSIMD_INLINE batch<double, A> min(batch<double, A> const& self, batch<double, A> const& other, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f64x2_relaxed_min(self.data, other.data);
+        }
+
+        // 4. MAX (Relaxed)
+        template <class A>
+        XSIMD_INLINE batch<float, A> max(batch<float, A> const& self, batch<float, A> const& other, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f32x4_relaxed_max(self.data, other.data);
+        }
+
+        template <class A>
+        XSIMD_INLINE batch<double, A> max(batch<double, A> const& self, batch<double, A> const& other, requires_arch<wasm_relaxed>) noexcept
+        {
+            return wasm_f64x2_relaxed_max(self.data, other.data);
+        }
+
+        // 5. RECIPROCAL (1/x)
+        // В wasm версии это div(1, x). Relaxed дает ~12 бит точности.
+        // Добавляем шаг Ньютона-Рафсона для повышения точности до ~23 бит.
+        template <class A>
+        XSIMD_INLINE batch<float, A> reciprocal(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
+        {
+            auto r = wasm_f32x4_relaxed_reciprocal(self.data);
+            // Шаг уточнения: r = r * (2.0 - x * r)
+            // Используем nmadd для скобки: -(x*r) + 2.0
+            auto two = wasm_f32x4_splat(2.0f);
+            auto correction = wasm_f32x4_relaxed_nmadd(self.data, r, two);
+            return wasm_f32x4_mul(r, correction);
+        }
+        // Для double relaxed reciprocal обычно не реализуется аппаратно, оставляем стандартный.
+
+        // 6. RSQRT (1/sqrt(x))
+        // В wasm версии это div(1, sqrt(x)).
+        template <class A>
+        XSIMD_INLINE batch<float, A> rsqrt(batch<float, A> const& self, requires_arch<wasm_relaxed>) noexcept
+        {
+            auto r = wasm_f32x4_relaxed_rsqrt(self.data);
+            // Шаг уточнения: r = r * (1.5 - 0.5 * x * r * r)
+            auto half = wasm_f32x4_splat(0.5f);
+            auto one_point_five = wasm_f32x4_splat(1.5f);
+            
+            // x * r * r
+            auto term = wasm_f32x4_mul(self.data, wasm_f32x4_mul(r, r));
+            // -(0.5 * term) + 1.5
+            auto correction = wasm_f32x4_relaxed_nmadd(half, term, one_point_five);
+            return wasm_f32x4_mul(r, correction);
+        }
 
         // fwd
         template <class A, class T, size_t I>
