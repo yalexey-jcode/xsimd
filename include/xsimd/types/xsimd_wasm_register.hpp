@@ -36,19 +36,17 @@ namespace xsimd
         static constexpr char const* name() noexcept { return "wasm"; }
     };
 
-/**
+    /**
      * @ingroup architectures
      *
      * WASM Relaxed instructions
      */
-    struct wasm_relaxed : wasm // Наследуемся от wasm!
+    struct wasm_relaxed : wasm
     {
         static constexpr bool supported() noexcept { return XSIMD_WITH_WASM_RELAXED; }
         static constexpr bool available() noexcept { return true; }
-        // alignment и requires_alignment наследуются от wasm
         static constexpr char const* name() noexcept { return "wasm_relaxed"; }
     };
-
 
 #if XSIMD_WITH_WASM
     namespace types
@@ -69,7 +67,10 @@ namespace xsimd
     }
 #endif
 
+// ИСПРАВЛЕНИЕ: Открываем namespace types заново для relaxed
 #if XSIMD_WITH_WASM_RELAXED
+    namespace types
+    {
         XSIMD_DECLARE_SIMD_REGISTER(signed char, wasm_relaxed, v128_t);
         XSIMD_DECLARE_SIMD_REGISTER(unsigned char, wasm_relaxed, v128_t);
         XSIMD_DECLARE_SIMD_REGISTER(char, wasm_relaxed, v128_t);
@@ -83,6 +84,7 @@ namespace xsimd
         XSIMD_DECLARE_SIMD_REGISTER(long long int, wasm_relaxed, v128_t);
         XSIMD_DECLARE_SIMD_REGISTER(float, wasm_relaxed, v128_t);
         XSIMD_DECLARE_SIMD_REGISTER(double, wasm_relaxed, v128_t);
+    }
 #endif
 
 }
