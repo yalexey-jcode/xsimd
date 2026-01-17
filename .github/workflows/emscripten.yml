@@ -1,4 +1,4 @@
-name: Emscripten build
+relaxedxed: Emscripten build
 on: [push, pull_request]
 concurrency:
   group: ${{ github.workflow }}-${{ github.job }}-${{ github.ref }}
@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Запускаем два варианта: стандартный и relaxed
+        # ГЁ relaxed
         simd_config: [standard, relaxed]
 
     steps:
@@ -30,21 +30,21 @@ jobs:
             echo "Building configuration: ${{ matrix.simd_config }}"
             playwright install
             
-            # Настраиваем флаги в зависимости от матрицы
+            # ГЌГ Г±ГІГ°Г ГЁГўГ ГҐГ¬ ГґГ«Г ГЈГЁ Гў Г§Г ГўГЁГ±ГЁГ¬Г®Г±ГІГЁ Г®ГІ Г¬Г ГІГ°ГЁГ¶Г»
             if [ "${{ matrix.simd_config }}" == "relaxed" ]; then
-              # Включаем Relaxed SIMD и Fast Math
-              # -msimd128: включает базовый SIMD
-              # -mrelaxed-simd: включает relaxed инструкции
-              # -ffast-math: разрешает оптимизации и определяет __FAST_MATH__
+              # Г‚ГЄГ«ГѕГ·Г ГҐГ¬ Relaxed SIMD ГЁ Fast Math
+              # -msimd128: ГўГЄГ«ГѕГ·Г ГҐГІ ГЎГ Г§Г®ГўГ»Г© SIMD
+              # -mrelaxed-simd: ГўГЄГ«ГѕГ·Г ГҐГІ relaxed ГЁГ­Г±ГІГ°ГіГЄГ¶ГЁГЁ
+              # -ffast-math: Г°Г Г§Г°ГҐГёГ ГҐГІ Г®ГЇГІГЁГ¬ГЁГ§Г Г¶ГЁГЁ ГЁ Г®ГЇГ°ГҐГ¤ГҐГ«ГїГҐГІ __FAST_MATH__
               export CXXFLAGS="-msimd128 -mrelaxed-simd -ffast-math"
               export CFLAGS="-msimd128 -mrelaxed-simd -ffast-math"
               
-              # Можно также передать макрос явно, если вдруг компилятор старый, 
-              # но обычно флаги выше делают это сами.
+              # ГЊГ®Г¦Г­Г® ГІГ ГЄГ¦ГҐ ГЇГҐГ°ГҐГ¤Г ГІГј Г¬Г ГЄГ°Г®Г± ГїГўГ­Г®, ГҐГ±Г«ГЁ ГўГ¤Г°ГіГЈ ГЄГ®Г¬ГЇГЁГ«ГїГІГ®Г° Г±ГІГ Г°Г»Г©, 
+              # Г­Г® Г®ГЎГ»Г·Г­Г® ГґГ«Г ГЈГЁ ГўГ»ГёГҐ Г¤ГҐГ«Г ГѕГІ ГЅГІГ® Г±Г Г¬ГЁ.
               echo "Relaxed SIMD enabled. Flags: $CXXFLAGS"
             else
               echo "Standard build."
             fi
 
-            # Запускаем исправленный скрипт
+            # Г‡Г ГЇГіГ±ГЄГ ГҐГ¬ ГЁГ±ГЇГ°Г ГўГ«ГҐГ­Г­Г»Г© Г±ГЄГ°ГЁГЇГІ
             ./test/test_wasm/test_wasm.sh 4.0.21
