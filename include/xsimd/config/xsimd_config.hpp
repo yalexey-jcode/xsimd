@@ -411,6 +411,18 @@
 /**
  * @ingroup xsimd_config_macro
  *
+ * Set to 1 if WebAssembly Relaxed SIMD is available at compile-time, to 0 otherwise.
+ */
+#if defined(__EMSCRIPTEN__) && defined(__wasm_relaxed_simd__) && defined(__FAST_MATH__)
+#define XSIMD_WITH_WASM_RELAXED 1
+#else
+#define XSIMD_WITH_WASM_RELAXED 0
+#endif
+
+
+/**
+ * @ingroup xsimd_config_macro
+ *
  * Set to 1 if WebAssembly SIMD is available at compile-time, to 0 otherwise.
  */
 #ifdef __EMSCRIPTEN__
