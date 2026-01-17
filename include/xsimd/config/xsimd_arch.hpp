@@ -171,7 +171,7 @@ namespace xsimd
     using all_arm_architectures = typename detail::join<all_sve_architectures, arch_list<i8mm<neon64>, neon64, neon>>::type;
     using all_power_architectures = arch_list<vsx>;
     using all_riscv_architectures = all_rvv_architectures;
-    using all_wasm_architectures = arch_list<wasm>;
+    using all_wasm_architectures = arch_list<wasm_relaxed, wasm>;
     using all_architectures = typename detail::join<all_power_architectures, all_riscv_architectures, all_wasm_architectures, all_arm_architectures, all_x86_architectures>::type;
 
     using supported_architectures = typename detail::supported<all_architectures>::type;
