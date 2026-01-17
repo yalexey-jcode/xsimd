@@ -6,6 +6,11 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Запускаем два варианта: стандартный и relaxed
+        simd_config: [standard, relaxed]
 
     steps:
       - name: Checkout
@@ -22,6 +27,24 @@ jobs:
       - name: Build script
         shell: bash -el {0}
         run: |
-            echo "Build script for wasm"
+            echo "Building configuration: ${{ matrix.simd_config }}"
             playwright install
+            
+            # Настраиваем флаги в зависимости от матрицы
+            if [ "${{ matrix.simd_config }}" == "relaxed" ]; then
+              # Включаем Relaxed SIMD и Fast Math
+              # -msimd128: включает базовый SIMD
+              # -mrelaxed-simd: включает relaxed инструкции
+              # -ffast-math: разрешает оптимизации и определяет __FAST_MATH__
+              export CXXFLAGS="-msimd128 -mrelaxed-simd -ffast-math"
+              export CFLAGS="-msimd128 -mrelaxed-simd -ffast-math"
+              
+              # Можно также передать макрос явно, если вдруг компилятор старый, 
+              # но обычно флаги выше делают это сами.
+              echo "Relaxed SIMD enabled. Flags: $CXXFLAGS"
+            else
+              echo "Standard build."
+            fi
+
+            # Запускаем исправленный скрипт
             ./test/test_wasm/test_wasm.sh 4.0.21
