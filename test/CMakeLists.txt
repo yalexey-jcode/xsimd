@@ -228,7 +228,7 @@ if(EMSCRIPTEN)
     set_target_properties(test_xsimd PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=test_xsimd_wasm -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -lembind -mmultivalue")
     
     target_compile_options(test_xsimd
-        PUBLIC --std=c++17
+        PUBLIC --std=c++23
         PUBLIC "SHELL: -msimd128"
         PUBLIC "SHELL: -msse2"
         # Ваши новые флаги:
