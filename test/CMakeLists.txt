@@ -233,6 +233,6 @@ if(EMSCRIPTEN)
         PUBLIC "SHELL: -msse2"
         # Ваши новые флаги:
         PUBLIC "SHELL: -mmultivalue"
-        PUBLIC "SHELL: -Xclang -target-abi -Xclang experimental-mv"
+       # PUBLIC "SHELL: -Xclang -target-abi -Xclang experimental-mv"
     )
 endif()
